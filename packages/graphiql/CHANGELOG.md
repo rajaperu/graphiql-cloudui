@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.8.10
+
+### Patch Changes
+
+- [#2397](https://github.com/graphql/graphiql/pull/2397) [`a63ff958`](https://github.com/graphql/graphiql/commit/a63ff958838cf4fcf31f7eaa3e3b022d02838f65) Thanks [@thomasheyenbrock](https://github.com/thomasheyenbrock)! - upgrade to React v17
+
 ## 1.8.9
 
 ### Patch Changes
