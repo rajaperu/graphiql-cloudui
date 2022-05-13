@@ -9,7 +9,7 @@
       "path": "../packages/graphiql-toolkit"
     },
     {
-      "path": "../packages/graphiql"
+      "path": "../packages/graphiql-cloudui"
     },
     {
       "path": "../packages/monaco-graphql"
