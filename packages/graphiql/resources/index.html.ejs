@@ -43,7 +43,9 @@
      -->
   </head>
   <body>
-    <div id="graphiql">Loading...</div>
+    <div id="embedded-graphiql-container" class="embedded-graphiql-container">
+      <div id="graphiql">Loading...</div>
+    </div>
     <script type="application/javascript">
       window.GraphQLVersion = <%= htmlWebpackPlugin.options.graphqlVersion %>
     </script>

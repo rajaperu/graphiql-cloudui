@@ -24,7 +24,7 @@ type NavStackItem = {
 
 const initialNav: NavStackItem = {
   name: 'Schema',
-  title: 'Documentation Explorer',
+  title: 'Schema Documentation',
 };
 
 type DocExplorerProps = {

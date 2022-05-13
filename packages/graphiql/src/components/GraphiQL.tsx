@@ -71,7 +71,7 @@ import type {
 import HistoryStore from '../utility/HistoryStore';
 
 import { validateSchema } from 'graphql';
-import { Tab, TabAddButton, Tabs } from './Tabs';
+// import { Tab, TabAddButton, Tabs } from './Tabs';
 import { fuzzyExtractOperationTitle } from '../utility/fuzzyExtractOperationTitle';
 import { idFromTabContents } from '../utility/id-from-tab-contents';
 import { guid } from '../utility/guid';
@@ -339,6 +339,7 @@ export type GraphiQLState = {
   documentAST?: DocumentNode;
   maxHistoryLength: number;
   tabs: TabsState;
+  isFullScreen?: boolean;
 };
 
 const stringify = (obj: unknown): string => JSON.stringify(obj, null, 2);
@@ -426,6 +427,8 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
   editorBarComponent: Maybe<HTMLDivElement>;
   queryEditorComponent: Maybe<QueryEditor>;
   resultViewerElement: Maybe<HTMLElement>;
+  graphiqlDivElement: Maybe<HTMLElement> | null;
+  embeddedGraphiqlDivElement: Maybe<HTMLElement> | null;
 
   constructor(props: GraphiQLProps) {
     super(props);
@@ -499,6 +502,11 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
 
     const headerEditorEnabled = props.headerEditorEnabled ?? true;
     const shouldPersistHeaders = props.shouldPersistHeaders ?? false;
+
+    const isFullScreenOn = false;
+    this.embeddedGraphiqlDivElement = document.getElementById(
+      'embedded-graphiql-container',
+    );
 
     let schema = props.schema;
     let response = props.response;
@@ -606,6 +614,7 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
       operationName: activeTab?.operationName,
       response: activeTab?.response ?? response,
       docExplorerOpen,
+      isFullScreen: isFullScreenOn,
       schemaErrors,
       editorFlex: Number(this._storage.get('editorFlex')) || 1,
       secondaryEditorOpen,
@@ -782,39 +791,94 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
     }
   };
 
-  private makeHandleOnSelectTab = (index: number) => () => {
-    this.handleStopQuery();
-    this.setState(
-      state => stateOnSelectTabReducer(index, state),
-      () => {
-        this.persistTabsState();
-        if (this.state.query) {
-          this.handleEditQuery(this.state.query);
-        }
-      },
-    );
-  };
-
-  private makeHandleOnCloseTab = (index: number) => () => {
-    if (this.state.tabs.activeTabIndex === index) {
-      this.handleStopQuery();
-    }
-    this.setState(
-      state => stateOnCloseTabReducer(index, state),
-      this.persistTabsState,
-    );
-  };
-
-  private handleOnAddTab = () => {
-    this.setState(state => stateOnTabAddReducer(state), this.persistTabsState);
-  };
-
   render() {
     const children = React.Children.toArray(this.props.children);
 
-    const logo = find(children, child =>
-      isChildComponentType(child, GraphiQL.Logo),
-    ) || <GraphiQL.Logo />;
+    const createFullScreenButton = (
+      <button
+        className="toolbar-button-full-screen"
+        onClick={this.handleFullScreen}
+        aria-invalid="false"
+        title="Full Screen">
+        <svg
+          width="24"
+          height="24"
+          xmlns="http://www.w3.org/2000/svg"
+          overflow="hidden">
+          <defs>
+            <clipPath id="clip0">
+              <rect x="628" y="348" width="24" height="24" />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#clip0)" transform="translate(-628 -348)">
+            <path
+              d="M633 353 638 353 638 351 631 351 631 358 633 358ZM638 367 633 367 633 362 631 362 631 369 638 369ZM649 362 647 362 647 367 642 367 642 369 649 369ZM647 358 649 358 649 351 642 351 642 353 647 353Z"
+              fill="#000000"
+              fillRule="nonzero"
+              fillOpacity="1"
+            />
+          </g>
+        </svg>
+      </button>
+    );
+
+    const createExitFullScreenButton = (
+      <button
+        className="toolbar-button-exit-full-screen"
+        onClick={this.handleExitFullScreen}
+        aria-invalid="false"
+        title="Exit Full Screen">
+        <svg
+          width="24"
+          height="25"
+          xmlns="http://www.w3.org/2000/svg"
+          overflow="hidden">
+          <defs>
+            <clipPath id="clip0">
+              <rect x="680" y="237" width="24" height="25" />
+            </clipPath>
+            <clipPath id="clip1">
+              <rect x="680" y="238" width="24" height="24" />
+            </clipPath>
+            <clipPath id="clip2">
+              <rect x="680" y="238" width="24" height="24" />
+            </clipPath>
+            <clipPath id="clip3">
+              <rect x="680" y="238" width="24" height="24" />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#clip0)" transform="translate(-680 -237)">
+            <g clipPath="url(#clip1)">
+              <g clipPath="url(#clip2)">
+                <g clipPath="url(#clip3)">
+                  <path
+                    d="M690 242 688 242 688 246 684 246 684 248 690 248ZM688 258 690 258 690 252 684 252 684 254 688 254ZM700 252 694 252 694 258 696 258 696 254 700 254ZM700 246 696 246 696 242 694 242 694 248 700 248Z"
+                    fill="#000000"
+                    fillRule="nonzero"
+                    fillOpacity="1"
+                  />
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </button>
+    );
+
+    const fullScreenButtonElement = (): JSX.Element => {
+      this.embeddedGraphiqlDivElement = document.getElementById(
+        'embedded-graphiql-container',
+      );
+      return (
+        <>
+          {this.embeddedGraphiqlDivElement
+            ? this.state.isFullScreen
+              ? createExitFullScreenButton
+              : createFullScreenButton
+            : null}
+        </>
+      );
+    };
 
     const toolbar = find(children, child =>
       isChildComponentType(child, GraphiQL.Toolbar),
@@ -822,8 +886,8 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
       <GraphiQL.Toolbar>
         <ToolbarButton
           onClick={this.handlePrettifyQuery}
-          title="Prettify Query (Shift-Ctrl-P)"
-          label="Prettify"
+          title="Format Query (Shift-Ctrl-P)"
+          label="Format"
         />
         <ToolbarButton
           onClick={this.handleMergeQuery}
@@ -840,6 +904,13 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
           title="Show History"
           label="History"
         />
+        `
+        <ToolbarButton
+          onClick={this.handleToggleDocs}
+          title="Open Schema"
+          label="Schema"
+        />
+        {fullScreenButtonElement()}
         {this.props.toolbar?.additionalContent
           ? this.props.toolbar.additionalContent
           : null}
@@ -910,7 +981,6 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
           <div className="topBarWrap">
             {this.props.beforeTopBarContent}
             <div className="topBar">
-              {logo}
               <ExecuteButton
                 isRunning={Boolean(this.state.subscription)}
                 onRun={this.handleRunQuery}
@@ -919,37 +989,7 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
               />
               {toolbar}
             </div>
-            {!this.state.docExplorerOpen && (
-              <button
-                className="docExplorerShow"
-                onClick={this.handleToggleDocs}
-                aria-label="Open Documentation Explorer">
-                Docs
-              </button>
-            )}
           </div>
-          {this.props.tabs ? (
-            <Tabs
-              tabsProps={{
-                'aria-label': 'Select active operation',
-              }}>
-              {tabsState.tabs.map((tab, index) => (
-                <Tab
-                  key={tab.id}
-                  isActive={index === tabsState.activeTabIndex}
-                  title={tab.title}
-                  isCloseable={tabsState.tabs.length > 1}
-                  onSelect={this.makeHandleOnSelectTab(index)}
-                  onClose={this.makeHandleOnCloseTab(index)}
-                  tabProps={{
-                    'aria-controls': 'sessionWrap',
-                    id: `session-tab-${index}`,
-                  }}
-                />
-              ))}
-              <TabAddButton onClick={this.handleOnAddTab} />
-            </Tabs>
-          ) : null}
           <div
             ref={n => {
               this.editorBarComponent = n;
@@ -1087,7 +1127,7 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
               <button
                 className="docExplorerHide"
                 onClick={this.handleToggleDocs}
-                aria-label="Close Documentation Explorer">
+                aria-label="Close Schema Documentation">
                 {'\u2715'}
               </button>
             </DocExplorer>
@@ -1911,6 +1951,26 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
     this.setState({ historyPaneOpen: !this.state.historyPaneOpen });
   };
 
+  handleFullScreen = () => {
+    if (this.embeddedGraphiqlDivElement) {
+      this.embeddedGraphiqlDivElement.classList.add('full-screen');
+      this.embeddedGraphiqlDivElement.classList.remove(
+        'embedded-graphiql-container',
+      );
+      this.setState({ isFullScreen: true });
+    }
+  };
+
+  handleExitFullScreen = () => {
+    if (this.embeddedGraphiqlDivElement) {
+      this.embeddedGraphiqlDivElement.classList.remove('full-screen');
+      this.embeddedGraphiqlDivElement.classList.add(
+        'embedded-graphiql-container',
+      );
+      this.setState({ isFullScreen: false });
+    }
+  };
+
   handleSelectHistoryQuery = (
     query?: string,
     variables?: string,
@@ -2387,6 +2447,7 @@ function tabsStateEditQueryReducer(
   };
 }
 
+/*
 function stateOnSelectTabReducer(
   index: number,
   state: GraphiQLState,
@@ -2424,6 +2485,7 @@ function stateOnSelectTabReducer(
     tabs: { ...state.tabs, tabs, activeTabIndex: index },
   };
 }
+
 
 function stateOnCloseTabReducer(
   index: number,
@@ -2494,4 +2556,4 @@ function stateOnTabAddReducer(state: GraphiQLState): GraphiQLState {
       tabs: [...tabs, newTab],
     },
   };
-}
+} */

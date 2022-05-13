@@ -297,7 +297,7 @@ module.exports = {
     'react/react-in-jsx-scope': 'error',
     'react/self-closing-comp': 'error',
     'react/display-name': 'warn',
-    'react/jsx-no-useless-fragment': 'error',
+    'react/jsx-no-useless-fragment': 'warn',
     // Jest rules
     'jest/no-conditional-expect': 0,
   },
