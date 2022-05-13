@@ -8,7 +8,7 @@
     "Raja Perumal <raja.perumal@oracle.com>"
   ],
   "repository": "https://github.com/rajaperu/graphiql-cloudui",
-  "homepage": "https://github.com/rajaperu/graphiql-cloudui/blob/main/packages/graphiql/README.md",
+  "homepage": "https://github.com/rajaperu/graphiql-cloudui/blob/main/packages/graphiql-cloudui/README.md",
   "bugs": {
     "url": "https://github.com/rajaperu/graphiql-cloudui/issues?q=issue+label:graphiql-cloudui"
   },
