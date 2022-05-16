@@ -106,5 +106,9 @@
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3",
     "ws": "^8.3.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.com/"
   }
 }

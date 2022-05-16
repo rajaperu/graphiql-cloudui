@@ -659,7 +659,7 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
       window.g = this;
     }
   }
-
+  /*
   UNSAFE_componentWillMount() {
     this.componentIsMounted = false;
   }
@@ -755,7 +755,7 @@ export class GraphiQL extends React.Component<GraphiQLProps, GraphiQLState> {
         }
       },
     );
-  }
+  } */
 
   componentDidUpdate() {
     // If this update caused DOM nodes to have changed sizes, update the
